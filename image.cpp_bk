@@ -1,0 +1,255 @@
+#include<iostream>
+#include<cstdlib>
+#include<cstring>
+#include<vector>
+#include<unistd.h>
+#include<cstdlib>
+#include<ctime>
+#include<sys/time.h>
+
+using namespace std;
+
+#define PATH "../osd/"
+#define FILE_bg "../osd/bg.png"
+
+
+
+std::string now_str()
+{
+    struct timeval tpend;
+    gettimeofday(&tpend,NULL);
+
+    int secofday = (tpend.tv_sec + 3600 * 8 ) % 86400;
+    int hours = secofday / 3600;
+    int minutes = (secofday - hours * 3600 ) / 60;
+    int seconds = secofday % 60;
+    int milliseconds = tpend.tv_usec/1000;
+    char buf[40];
+    sprintf(buf, "%02d:%02d:%02d.%03d",  hours, minutes, seconds, milliseconds);
+    return buf;
+}
+
+struct position
+{
+    int x;
+    int y;
+    int height;
+    int whdth;
+};
+
+class TextBox{
+private:
+    static string s_TextBox_opt;
+    static string s_Text_opt;
+    static string s_Picture_opt;
+    static string s_PictureBox_opt;
+    string m_TextBox_opt;
+    int repace_str(string &src,const char *str,int desk)
+    {
+        char temp[20];
+        memset(temp,0,sizeof(temp));
+        sprintf(temp,"%d",desk);
+        src.find(str,0);
+
+        if(src.find(str) == src.npos)
+        {
+            cout<<"not find "<< str << " in " << src <<endl;
+            return -1;
+        }
+        src.replace(src.find(str),strlen(str),temp);
+
+        return 0;
+    }
+public:
+    string config_TextBox(int box_x1,int box_y1,int box_x2,int box_y2,string str,int flg)
+    {
+        int box_tx,box_ty;
+
+        box_tx = box_x1+10;
+        box_ty = box_y2-15;
+        if(flg)
+        {
+            m_TextBox_opt = s_TextBox_opt;
+            repace_str(m_TextBox_opt,"box_x1",box_x1);
+            repace_str(m_TextBox_opt,"box_y1",box_y1);
+            repace_str(m_TextBox_opt,"box_x2",box_x2);
+            repace_str(m_TextBox_opt,"box_y2",box_y2);
+        }
+        else
+        {
+            m_TextBox_opt = s_Text_opt;
+        }
+        repace_str(m_TextBox_opt,"box_tx",box_tx);
+        repace_str(m_TextBox_opt,"box_ty",box_ty);
+        m_TextBox_opt.replace(m_TextBox_opt.find("STRING",0),6,str);
+
+        return m_TextBox_opt;
+    }
+
+    string config_Picture_Text(int box_x1,int box_y1,int box_x2,int box_y2,string str,string pic,int flg)
+    {
+        int box_tx,box_ty,icon_x,icon_y;
+
+        box_tx = box_x1+61;
+        box_ty = box_y2-15;
+        icon_x = box_x1+20;
+        icon_y = box_y1+15;
+          
+        if(flg)
+        {
+            m_TextBox_opt = s_PictureBox_opt;
+            repace_str(m_TextBox_opt,"box_x1",box_x1);
+            repace_str(m_TextBox_opt,"box_y1",box_y1);
+            repace_str(m_TextBox_opt,"box_x2",box_x2);
+            repace_str(m_TextBox_opt,"box_y2",box_y2);
+        }
+        else
+        {
+            m_TextBox_opt = s_Picture_opt;
+        }
+
+        repace_str(m_TextBox_opt,"box_x",icon_x);
+        repace_str(m_TextBox_opt,"box_y",icon_y);
+        repace_str(m_TextBox_opt,"box_tx",box_tx);
+        repace_str(m_TextBox_opt,"box_ty",box_ty);
+        m_TextBox_opt.replace(m_TextBox_opt.find("STRING",0),6,str);
+        m_TextBox_opt.replace(m_TextBox_opt.find("PICTUR",0),6,pic);
+
+        return m_TextBox_opt;
+    }
+    
+
+    string get_opt()
+    {
+        return m_TextBox_opt;
+    }
+
+};
+string TextBox::s_TextBox_opt = " -font NotoSansCJKsc-Regular.otf -fill \"rgb(32,144,255)\" -draw \"rectangle box_x1,box_y1 box_x2,box_y2\" -pointsize 15 -fill \"rgb(255,255,255)\" -draw \"text box_tx,box_ty 'STRING'\" ";
+string TextBox::s_Text_opt = " -font NotoSansCJKsc-Regular.otf -pointsize 15 -fill \"rgb(255,255,255)\" -draw \"text box_tx,box_ty 'STRING'\"";
+string TextBox::s_Picture_opt = " -compose Atop PICTUR -geometry 32x32+box_x+box_y -composite -font NotoSansCJKsc-Regular.otf -pointsize 15 -fill \"rgb(255,255,255)\" -draw \"text box_tx,box_ty 'STRING'\" ";
+string TextBox::s_PictureBox_opt = " -fill \"rgb(32,144,255)\" -draw \"rectangle box_x1,box_y1 box_x2,box_y2\" -compose Atop PICTUR -geometry 32x32+box_x+box_y -composite -font NotoSansCJKsc-Regular.otf -pointsize 15 -fill \"rgb(255,255,255)\" -draw \"text box_tx,box_ty 'STRING'\" ";
+class Basic_Interface
+{
+private:
+    /* data */
+    std::string back = FILE_bg;
+    int category;
+    position pos_base = {0,0,480,640};
+public:
+    const char *get_image(void)
+    {
+        return this->back.c_str();
+    }
+    int get_pos_x(){return pos_base.x;}
+    int get_pos_y(){return pos_base.y;}
+    int get_pos_whigh(){return pos_base.whdth;}
+    int get_pos_heigth(){return pos_base.height;}
+};
+
+class preset:public Basic_Interface
+{
+private:
+    /* data */
+    std::string iamge = "preset";
+    int pos;
+    position pos_pre = {0,30,50,160};
+    position pos_second = {160,30,50,160};
+
+    TextBox b1;
+
+    string screen[10] = 
+    {
+        "屏幕1",
+        "屏幕2",
+        "屏幕3",
+        "屏幕4",
+        "屏幕5",
+        "屏幕6",
+        "屏幕7",
+        "屏幕8",
+        "屏幕9",
+        "屏幕10",
+    };
+
+    string item[4][2] =
+    {
+        {"场景","../osd/icon_preset.png"},
+        {"亮度","../osd/icon_light.png"},
+        {"画质","../osd/icon_quality.png"},
+        {"高级","../osd/icon_settings.png"},
+    };
+
+public:
+    void set_preset(int i)
+    {
+        pos = i;
+    }
+    void opt(int pos_1,int pos_2)
+    {
+        const char *temp = "temp.png";
+        char cmd[4096];
+        char new_cmd[4096];
+
+        for(int i = 0;i < 10;i++)
+        {
+            int box = 0;
+            TextBox m_box;
+            if(i == pos_1)
+            {
+                box = 1;
+            }
+            m_box.config_TextBox(pos_pre.x,pos_pre.y+pos_pre.height*i,pos_pre.whdth+pos_pre.x,pos_pre.y+pos_pre.height*(i+1),screen[i],box);
+            sprintf(cmd,"%s %s",cmd,m_box.get_opt().c_str());
+        }
+
+        for(int i = 0;i < 4;i++)
+        {
+            TextBox m_box;
+            int box = 0;
+            if(i==pos_2)
+                box = 1;
+            m_box.config_Picture_Text(pos_second.x,pos_second.y+pos_second.height*i,pos_second.whdth+pos_second.x,pos_second.y+pos_second.height*(i+1),item[i][0],item[i][1],box);
+            sprintf(cmd,"%s %s",cmd,m_box.get_opt().c_str());
+        }
+        memset(new_cmd,0,sizeof(new_cmd));
+        sprintf(new_cmd,"convert %s %s %s",get_image(),cmd,"-colorspace sRGB -depth 32 -alpha set -flip osd.bmp");
+        cout<<"time is ss"<<now_str()<<endl;
+        system(new_cmd);
+        cout<<"time is ss"<<now_str()<<endl;
+
+    }
+};
+
+int main(int argc,char **argv)
+{
+    int oc;
+    int p1 = 0,p2 = 0;
+    while((oc = getopt(argc,argv,"f:s:")) != -1)
+    {
+        switch(oc)
+        {
+            case 'f':
+            p1 = atoi(optarg);
+            cout<<"f is "<<optarg<<endl;
+            break;
+            case 's':
+            p2 = atoi(optarg);
+            cout<<"s is "<<optarg<<endl;
+            break;
+        }
+    }
+    preset p;
+    cout<<"time is "<<now_str()<<endl;
+    p.opt(p1,p2);
+    cout<<"time is "<<now_str()<<endl;
+
+    // cout<<"test is "<<now_str()<<endl;
+    // //system("convert 800_600.jpeg -pointsize 20 -fill blue -draw \"text 10,70 'color-R'\" -fill red -draw \"text 560,70 '30%'\"  -fill \"rgb(255,255,0)\" -stroke \"rgb(0,0,0)\" -strokewidth 2 -draw \"roundrectangle 80,50 550,30 30,0\"  -fill \"rgb(255,0,0)\" -draw \"roundrectangle 80,50 50,30 30,0\"  new.png ");
+    // system("convert 800_600.jpeg  new.jpeg ");
+    // cout<<"test is "<<now_str()<<endl;
+
+    system("display osd.bmp");
+
+    return 0;
+}
