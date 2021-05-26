@@ -43,7 +43,7 @@ struct position
     int x;
     int y;
     int height;
-    int whdth;
+    int width;
 };
 
 class TextBox{
@@ -151,7 +151,7 @@ public:
     }
     int get_pos_x(){return pos_base.x;}
     int get_pos_y(){return pos_base.y;}
-    int get_pos_whigh(){return pos_base.whdth;}
+    int get_pos_whigh(){return pos_base.width;}
     int get_pos_heigth(){return pos_base.height;}
 };
 
@@ -207,7 +207,7 @@ public:
             {
                 box = 1;
             }
-            m_box.config_TextBox(pos_pre.x,pos_pre.y+pos_pre.height*i,pos_pre.whdth+pos_pre.x,pos_pre.y+pos_pre.height*(i+1),screen[i],box);
+            m_box.config_TextBox(pos_pre.x,pos_pre.y+pos_pre.height*i,pos_pre.width+pos_pre.x,pos_pre.y+pos_pre.height*(i+1),screen[i],box);
             sprintf(cmd,"%s %s",cmd,m_box.get_opt().c_str());
         }
 
@@ -217,7 +217,7 @@ public:
             int box = 0;
             if(i==pos_2)
                 box = 1;
-            m_box.config_Picture_Text(pos_second.x,pos_second.y+pos_second.height*i,pos_second.whdth+pos_second.x,pos_second.y+pos_second.height*(i+1),item[i][0],item[i][1],box);
+            m_box.config_Picture_Text(pos_second.x,pos_second.y+pos_second.height*i,pos_second.width+pos_second.x,pos_second.y+pos_second.height*(i+1),item[i][0],item[i][1],box);
             sprintf(cmd,"%s %s",cmd,m_box.get_opt().c_str());
         }
         memset(new_cmd,0,sizeof(new_cmd));
@@ -536,6 +536,14 @@ int MaterialManage::GetBKmap()
     MaterialManage::bitmap_dell = 1;
     return 0;
 }
+int AddBox(position* p,int x,int y,int width,int height)
+{
+    p->x = x;
+    p->y = y;
+    p->width = width;
+    p->height = height;
+}
+
 MaterialManage image;
 int main(int argc,char **argv)
 {
@@ -547,11 +555,11 @@ int main(int argc,char **argv)
         {
             case 'f':
             p1 = atoi(optarg);
-            cout<<"f is "<<optarg<<endl;
+            std::cout<<"f is "<<optarg<<endl;
             break;
             case 's':
             p2 = atoi(optarg);
-            cout<<"s is "<<optarg<<endl;
+            std::cout<<"s is "<<optarg<<endl;
             break;
         }
     }
@@ -633,6 +641,7 @@ int main(int argc,char **argv)
     image.m_select.other = 0;
     image.m_select.column = 0;
     char op;
+    
     while(1)
     {
         s_select s_temp = image.m_select;
@@ -680,16 +689,20 @@ int main(int argc,char **argv)
                 break;
             }
         }
-        //cout<<"a is "<<a<<" b is "<<b<<endl;
+        position c_box[5];
+        int c_box_num = 0;
         cout<<"s_temp.column "<<s_temp.column<<" s_temp.screen "<<s_temp.screen<<" s_temp.item "<<s_temp.item<<endl;
         
-        if ((s_temp.screen != image.m_select.screen && image.m_select.screen < 10) || (image.m_select.column != s_temp.column))
+        if((s_temp.screen != image.m_select.screen && image.m_select.screen < 10) || (image.m_select.column != s_temp.column))
         {
             pos = 50 * image.m_select.screen + 30;
+            AddBox(c_box+c_box_num,0,pos,160,50);c_box_num++;
+            
             image.clear(0,pos,160,50);
             image.add_font(0,pos,160,50,22,0xffffffff,COLOR_BOX,screen_dis[image.m_select.screen].c_str(),0,0,COLOR_LINE);
             image.m_select.screen = s_temp.screen;
             pos = 50 * image.m_select.screen + 30;
+            AddBox(c_box+c_box_num,0,pos,160,50);c_box_num++;
             image.clear(0,pos,160,50);
             if(s_temp.column == 0)
             {
@@ -708,6 +721,7 @@ int main(int argc,char **argv)
             {
                 pos_f = 50 * image.m_select.item + 30;
                 printf("pos_f old is %d\n",pos_f);
+                AddBox(c_box+c_box_num,160,pos_f,160,50);c_box_num++;
                 image.clear(160,pos_f,160,50);
                 image.add_font(160,pos_f,160,50,22,0xffffffff,COLOR_BOX,ioc[image.m_select.item][1],0,0,COLOR_LINE);
                 image.add_pic(MaterialManage::mapImage[ioc[image.m_select.item][0]].image,180,pos_f+9);
@@ -719,6 +733,7 @@ int main(int argc,char **argv)
             {
                 pos_f = 50 * image.m_select.item + 30;
                 printf("pos_f is new %d\n",pos_f);
+                AddBox(c_box+c_box_num,160,pos_f,160,50);c_box_num++;
                 image.clear(160,pos_f,160,50);
                 if(s_temp.column == 1)
                     image.add_font(160,pos_f,160,50,22,0xffffffff,COLOR_BOX,ioc[image.m_select.item][1],1,0,COLOR_LINE);
@@ -729,21 +744,14 @@ int main(int argc,char **argv)
         }
         image.m_select.column = s_temp.column;
         image.SavebitTodata("osd","new.png");
+        for(int i  =0;i < c_box_num;i++)
+        {
+            cout<<"i "<<i<<" x "<<c_box[i].x<<" y "<<c_box[i].y<<" widht "<<c_box[i].width<<" height "<<c_box[i].height<<endl;
+        }
         system("display new.png");
     }
     
-//    image.draw_rectangle(0,30,160,50,1,0xE6216CB7);     //ARGB
-//    image.draw_rectangle(0,0,160,50,1,0xE6216CB7);     //ARGB
-//    cout<<"add pic is end  "<<now_str()<<endl;
-//    image.DisplayBK();
     image.SavebitTodata("osd","new.png");
-/*
-    preset p;
-    cout<<"time is "<<now_str()<<endl;
-    p.opt(p1,p2);
-    cout<<"time is "<<now_str()<<endl;
 
-    system("display osd.bmp");
-*/
     return 0;
 }
