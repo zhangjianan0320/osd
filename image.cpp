@@ -127,7 +127,6 @@ public:
         return m_TextBox_opt;
     }
     
-
     string get_opt()
     {
         return m_TextBox_opt;
@@ -428,7 +427,6 @@ public:
                     
                     if(line)
                     {
-                        //if((i < line) || ((height - i) < line) || (pos < (line * 4)) || ((len - pos) > (line * 4)))
                         if((i < line) || ((height - i) <= (line)) || (pos < (line * 4)) || ((len - pos) <= (line * 4)))
                         {
                             bitmap[start_desk + pos + 3] = fill_line>>24;
@@ -683,9 +681,9 @@ int main(int argc,char **argv)
             }
         }
         //cout<<"a is "<<a<<" b is "<<b<<endl;
+        cout<<"s_temp.column "<<s_temp.column<<" s_temp.screen "<<s_temp.screen<<" s_temp.item "<<s_temp.item<<endl;
         
-
-        if (s_temp.screen != image.m_select.screen && image.m_select.screen < 10)
+        if ((s_temp.screen != image.m_select.screen && image.m_select.screen < 10) || (image.m_select.column != s_temp.column))
         {
             pos = 50 * image.m_select.screen + 30;
             image.clear(0,pos,160,50);
@@ -701,10 +699,10 @@ int main(int argc,char **argv)
             else
             {
                 printf("dis box fill\n");
-                image.add_font(0,pos,160,50,22,0xffffffff,COLOR_BOX,screen_dis[image.m_select.screen].c_str(),0,2,COLOR_LINE);
+                image.add_font(0,pos,160,50,22,0xffffffff,COLOR_FILL,screen_dis[image.m_select.screen].c_str(),0,2,COLOR_LINE);
             }
         }
-        if (s_temp.item != image.m_select.item)
+        if ((s_temp.item != image.m_select.item) || (image.m_select.column != s_temp.column))
         {
             if(image.m_select.item < 4)
             {
@@ -722,10 +720,14 @@ int main(int argc,char **argv)
                 pos_f = 50 * image.m_select.item + 30;
                 printf("pos_f is new %d\n",pos_f);
                 image.clear(160,pos_f,160,50);
-                image.add_font(160,pos_f,160,50,22,0xffffffff,COLOR_BOX,ioc[image.m_select.item][1],1,0,COLOR_LINE);
+                if(s_temp.column == 1)
+                    image.add_font(160,pos_f,160,50,22,0xffffffff,COLOR_BOX,ioc[image.m_select.item][1],1,0,COLOR_LINE);
+                else
+                    image.add_font(160,pos_f,160,50,22,0xffffffff,COLOR_BOX,ioc[image.m_select.item][1],0,2,COLOR_LINE);
                 image.add_pic(MaterialManage::mapImage[ioc[image.m_select.item][0]].image,180,pos_f+9);
             }
         }
+        image.m_select.column = s_temp.column;
         image.SavebitTodata("osd","new.png");
         system("display new.png");
     }
