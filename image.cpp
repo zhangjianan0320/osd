@@ -742,11 +742,17 @@ int main(int argc,char **argv)
                 image.add_pic(MaterialManage::mapImage[ioc[image.m_select.item][0]].image,180,pos_f+9);
             }
         }
+
+        AddBox(c_box+c_box_num,30,25,40,20);c_box_num++;
+
         image.m_select.column = s_temp.column;
         image.SavebitTodata("osd","new.png");
         for(int i  =0;i < c_box_num;i++)
         {
-            cout<<"i "<<i<<" x "<<c_box[i].x<<" y "<<c_box[i].y<<" widht "<<c_box[i].width<<" height "<<c_box[i].height<<endl;
+            cout<<"old i "<<i<<" x "<<c_box[i].x<<" y "<<c_box[i].y<<" widht "<<c_box[i].width<<" height "<<c_box[i].height<<endl;
+            c_box[i].x = c_box[i].x % 16?c_box[i].x / 16 * 16:c_box[i].x;
+            c_box[i].width = c_box[i].width % 16?(c_box[i].width / 16) * 16 + 16:c_box[i].width;
+            cout<<"new i "<<i<<" x "<<c_box[i].x<<" y "<<c_box[i].y<<" widht "<<c_box[i].width<<" height "<<c_box[i].height<<endl;
         }
         system("display new.png");
     }
